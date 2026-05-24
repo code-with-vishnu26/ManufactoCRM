@@ -80,7 +80,9 @@ export default function Register() {
   // Social authentications listener — receives JWT from server OAuth callback popup
   useEffect(() => {
     const handleSocialAuthMessage = async (e) => {
-      const allowedOrigins = [window.location.origin, 'http://localhost:5000'];
+      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const serverOrigin = new URL(serverUrl).origin;
+      const allowedOrigins = [window.location.origin, 'http://localhost:5000', serverOrigin];
       if (!allowedOrigins.includes(e.origin) && !e.origin.includes('localhost')) return;
       if (e.data && e.data.success && e.data.token && e.data.user) {
         toast.loading(`Signing in...`, { id: 'social-auth' });
