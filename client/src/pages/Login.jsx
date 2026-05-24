@@ -24,10 +24,24 @@ export default function Login() {
   const [showPass, setShowPass] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [errors, setErrors] = useState({});
-  const { login, socialLogin, loading } = useAuth();
+  const { login, socialLogin, loading, user } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // Redirect if already logged in (prevents back-button to login loop)
+  useEffect(() => {
+    if (user) {
+      const dashboardRoutes = {
+        admin:           '/admin/dashboard',
+        team_lead:       '/teamlead/dashboard',
+        sales_executive: '/sales/dashboard',
+        webpage:         '/home',
+      };
+      const redirectRoute = dashboardRoutes[user.role] || '/sales/dashboard';
+      navigate(redirectRoute, { replace: true });
+    }
+  }, [user, navigate]);
 
   // Social authentications listener — receives JWT from server OAuth callback popup
   useEffect(() => {
