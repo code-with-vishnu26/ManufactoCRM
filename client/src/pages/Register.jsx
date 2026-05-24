@@ -116,7 +116,8 @@ export default function Register() {
     const height = 620;
     const left   = window.screen.width  / 2 - width  / 2;
     const top    = window.screen.height / 2 - height / 2;
-    const oauthUrl = `http://localhost:5000/api/oauth/${provider}`;
+    const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const oauthUrl = `${backendUrl}/oauth/${provider}`;
     window.open(
       oauthUrl,
       `oauth_${provider}`,
