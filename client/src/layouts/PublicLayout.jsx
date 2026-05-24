@@ -154,7 +154,7 @@ export default function PublicLayout() {
       }}>
         <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
           {/* Logo */}
-          <Link to="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div onClick={() => window.location.reload()} style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, userSelect: 'none' }}>
             <div style={{
               width: 36, height: 36, borderRadius: 10,
               background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
@@ -167,7 +167,7 @@ export default function PublicLayout() {
               Manufacto<span style={{ color: 'var(--accent-blue)' }}>CRM</span>{' '}
               <span style={{ fontSize: '0.72rem', background: 'linear-gradient(90deg,#6366f1,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 700 }}>AI</span>
             </span>
-          </Link>
+          </div>
 
           {/* Desktop Nav */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.8rem' }} className="desktop-nav">
@@ -185,84 +185,7 @@ export default function PublicLayout() {
             ))}
           </div>
 
-          {/* Search Box (only if logged in) */}
-          {user && (
-            <div ref={searchRef} style={{ position: 'relative' }} className="desktop-nav">
-              <div style={{
-                display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px',
-                background: scrolled ? 'var(--bg-secondary)' : 'rgba(255,255,255,0.05)', borderRadius: 8,
-                border: '1px solid var(--border-color)',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.01)',
-                width: 220
-              }}>
-                <MdSearch size={15} color="var(--text-muted)" />
-                <input
-                  type="text"
-                  placeholder="Search leads..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowSearchDropdown(true);
-                  }}
-                  onFocus={() => setShowSearchDropdown(true)}
-                  style={{
-                    border: 'none', background: 'transparent', outline: 'none',
-                    fontSize: 12, color: 'var(--text-primary)', width: '100%', fontWeight: 500
-                  }}
-                />
-              </div>
 
-              {/* Search Dropdown Overlay */}
-              <AnimatePresence>
-                {showSearchDropdown && (searchQuery.trim() !== '') && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    style={{
-                      position: 'absolute', top: '100%', left: 0, width: 220,
-                      background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                      borderRadius: 12, boxShadow: '0 10px 30px rgba(0,0,0,0.15)',
-                      padding: 8, marginTop: 6, zIndex: 100
-                    }}
-                  >
-                    {searching ? (
-                      <div style={{ padding: 12, textAlign: 'center', color: 'var(--text-muted)', fontSize: 11, fontWeight: 600 }}>
-                        <div style={{ width: 14, height: 14, border: '2px solid rgba(79,70,229,0.1)', borderTop: '2px solid #4f46e5', borderRadius: '50%', animation: 'spin 0.6s linear infinite', margin: '0 auto 6px' }} />
-                        Searching...
-                      </div>
-                    ) : searchResults.length === 0 ? (
-                      <div style={{ padding: 12, textAlign: 'center', color: '#94a3b8', fontSize: 12, fontWeight: 500 }}>
-                        No matching leads found 📭
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div style={{ fontSize: 10, color: '#94a3b8', fontWeight: 700, padding: '4px 8px', textTransform: 'uppercase', letterSpacing: 0.5 }}>Search Results ({searchResults.length})</div>
-                        {searchResults.slice(0, 5).map((lead) => (
-                          <Link
-                            key={lead._id}
-                            to={`/leads/${lead._id}`}
-                            onClick={() => {
-                              setShowSearchDropdown(false);
-                              setSearchQuery('');
-                            }}
-                            style={{
-                              display: 'block', padding: '8px 10px', borderRadius: 8,
-                              textDecoration: 'none', color: 'inherit', transition: 'background 0.2s'
-                            }}
-                            className="search-item-hover"
-                          >
-                            <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-primary)' }}>{lead.companyName}</div>
-                            <div style={{ fontSize: 10, color: 'var(--text-secondary)', marginTop: 1 }}>{lead.clientName} · <span style={{ color: '#10b981', fontWeight: 600 }}>{lead.estimatedDealValue ? `₹${(lead.estimatedDealValue/100000).toFixed(1)}L` : '—'}</span></div>
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          )}
 
           {/* Action Buttons Block */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
