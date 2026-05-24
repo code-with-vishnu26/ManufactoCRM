@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Social Authentication — ManufactoCRM AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --text: #0f172a;
+      --text-sub: #475569;
+      --border: #e2e8f0;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justifyContent: center;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+      text-align: center;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .logo-container {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 4px 10px rgba(99,102,241,0.2);
+    }
+    h2 {
+      font-size: 19px;
+      font-weight: 800;
+      margin: 0 0 6px 0;
+      letter-spacing: -0.3px;
+    }
+    p {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.5;
+      margin: 0 0 24px 0;
+    }
+    .account-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .account-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border-radius: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+    }
+    .account-btn:hover {
+      background: #f1f5f9;
+      border-color: var(--primary);
+    }
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .details {
+      display: flex;
+      flex-direction: column;
+    }
+    .name {
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+    .email {
+      font-size: 11px;
+      color: var(--text-sub);
+    }
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 10px;
+      color: #94a3b8;
+      text-transform: uppercase;
+      font-weight: 700;
+      margin: 16px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+    .input-field {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 13px;
+      outline: none;
+      box-sizing: border-box;
+      margin-bottom: 12px;
+      transition: border-color 0.2s;
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+    .submit-btn {
+      width: 100%;
+      padding: 11px;
+      border: none;
+      background: var(--primary);
+      color: white;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(99,102,241,0.15);
+      transition: all 0.2s;
+    }
+    .submit-btn:hover {
+      background: var(--primary-hover);
+    }
+    .loading-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding: 24px 0;
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid rgba(99,102,241,0.2);
+      border-top: 3px solid var(--primary);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <div class="logo-container">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    </div>
+    
+    <h2 id="header-title">Choose an account</h2>
+    <p id="header-desc">to continue to <strong style="color: var(--primary);">ManufactoCRM AI</strong></p>
+
+    <!-- Loading -->
+    <div class="loading-container" id="loading">
+      <div class="spinner"></div>
+      <span style="font-size: 13px; font-weight: 600; color: var(--text-sub);">Authenticating securely...</span>
+    </div>
+
+    <!-- Chooser Form -->
+    <div id="content">
+      <div class="account-list" id="account-list">
+        <!-- Accounts will be inserted by JS based on provider -->
+      </div>
+
+      <div class="divider">or use another email</div>
+
+      <input type="text" id="custom-name" class="input-field" placeholder="Full Name" required>
+      <input type="email" id="custom-email" class="input-field" placeholder="Email Address" required>
+      <button class="submit-btn" onclick="submitCustom()">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    // Get query parameters
+    const params = new URLSearchParams(window.location.search);
+    const provider = params.get('provider') || 'google';
+    const role = params.get('role') || 'sales_executive';
+
+    // Capitalize provider
+    const providerTitle = provider.charAt(0).toUpperCase() + provider.slice(1);
+    document.getElementById('header-title').innerText = `Sign in with ${providerTitle}`;
+
+    // Populate mock accounts based on provider
+    const accounts = {
+      google: [
+        { name: 'Alex Mercer', email: 'alex.mercer@gmail.com' },
+        { name: 'Sarah Connor', email: 'sarah.connor@gmail.com' }
+      ],
+      github: [
+        { name: 'Linus Torvalds', email: 'linus.git@github.com' },
+        { name: 'Ada Lovelace', email: 'ada.coder@github.com' }
+      ],
+      microsoft: [
+        { name: 'Bill Gates', email: 'billg@microsoft.com' },
+        { name: 'Satya Nadella', email: 'satya@microsoft.com' }
+      ]
+    };
+
+    const mockList = accounts[provider] || accounts.google;
+    const listContainer = document.getElementById('account-list');
+
+    mockList.forEach(acc => {
+      const btn = document.createElement('button');
+      btn.className = 'account-btn';
+      btn.onclick = () => selectAccount(acc.name, acc.email);
+      
+      const initials = acc.name.split(' ').map(n => n[0]).join('');
+      
+      btn.innerHTML = `
+        <div class="avatar">${initials}</div>
+        <div class="details">
+          <span class="name">${acc.name}</span>
+          <span class="email">${acc.email}</span>
+        </div>
+      `;
+      listContainer.appendChild(btn);
+    });
+
+    function selectAccount(name, email) {
+      // Transition to loading
+      document.getElementById('content').style.display = 'none';
+      document.getElementById('loading').style.display = 'flex';
+      
+      setTimeout(() => {
+        // Send message to parent window and close
+        window.opener.postMessage({
+          success: true,
+          provider: provider,
+          role: role,
+          name: name,
+          email: email
+        }, window.location.origin);
+        
+        window.close();
+      }, 1200);
+    }
+
+    function submitCustom() {
+      const name = document.getElementById('custom-name').value.trim();
+      const email = document.getElementById('custom-email').value.trim();
+
+      if (!name || !email) {
+        alert('Please enter both name and email');
+        return;
+      }
+      if (!/\S+@\S+\.\S+/.test(email)) {
+        alert('Please enter a valid email address');
+        return;
+      }
+
+      selectAccount(name, email);
+    }
+  </script>
+</body>
+</html>
