@@ -217,35 +217,32 @@ Here is a detailed guide explaining the structure, design, and features of each 
 ### 1. Account Registration (Step 1)
 When new users sign up for ManufactoCRM AI, they undergo a multi-step guided registration wizard to configure their role and profile metrics. Step 1 gathers fundamental identification details, credentials, and permits instant authorization through popular OAuth providers (Google, GitHub, and Microsoft).
 
-![Registration Page](screenshots/media__1779622327211.png)
+
 
 ---
 
 ### 2. User Authentication Page
 The login screen features pre-filled credentials for testing different role-based views. It uses a modern dark layout with card elements detailing core features such as Pipeline management, Analytics tools, and AI Sales Assist.
 
-![Login Page](screenshots/media__1779621372795.png)
 
 ---
 
 ### 3. Admin Dashboard View
 Logging in as an Administrator directs you to a system-wide control center. It offers full visibility into cumulative metrics across all sales executives. The dashboard displays KPI cards (Total active users, total leads, total revenue, and system health status), lists recent logs of activities across the company, shows user breakdown statistics, and features rapid shortcut buttons to manage CRM users.
 
-![Admin Dashboard](screenshots/media__1779621780952.png)
+
 
 ---
 
 ### 4. Lead Management Page (`My Leads`)
 The Lead Management page allows Sales Executives and managers to inspect assigned client leads. It lists details like lead name, status, industry sector, deal size, priority level, and assigned date. Users can filter by priority level and pipeline status, create new leads via the **New Lead** button, and search leads in real-time. If no leads are currently assigned, a friendly mailbox alert is displayed.
 
-![Lead Management Page](screenshots/media__1779623376578.png)
-
 ---
 
 ### 5. Sales Pipeline Kanban Board
 The Pipeline page displays leads as drag-and-drop cards mapped across columns representing the 7 key sales stages. Powered by `@dnd-kit`, Sales Executives can drag and drop cards to change a lead's stage instantly, updating the backend database and logging the activity automatically.
 
-![Sales Pipeline Kanban Board](screenshots/media__1779623386703.png)
+
 
 ---
 
@@ -256,7 +253,6 @@ The Analytics page compiles historical data into charts. It displays KPI metrics
 - **Lead Generation Trend**: Area charts showing lead ingestion count over time.
 - **Revenue by Month**: Revenue trends generated from closed won deals.
 
-![Analytics Dashboard](screenshots/media__1779623396643.png)
 
 ---
 
@@ -285,10 +281,4 @@ The application features a global navbar search box that allows users to query a
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License — feel free to use it for learning, distribution, or production deployment.
-
----
-
-**Made with ❤️ for the Manufacturing Industry**
-
+Thank You For Visiting @!
