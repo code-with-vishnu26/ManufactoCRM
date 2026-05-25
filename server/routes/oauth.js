@@ -119,23 +119,41 @@ async function handleSocialUser({ name, email, avatar, provider }) {
 
 /** Build the HTML page that posts result to the opener and closes itself */
 function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, clientOrigin }) {
-  const clientUrl = clientOrigin || process.env.CLIENT_URL || 'http://localhost:5173';
+  const clientUrl = (clientOrigin || process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
   if (error) {
-    return `<!DOCTYPE html><html><body><script>
-      window.opener && window.opener.postMessage({ success: false, error: ${JSON.stringify(error)} }, ${JSON.stringify(clientUrl)});
-      window.close();
-    </script></body></html>`;
+    return `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:30px;background:#fef2f2;color:#991b1b;text-align:center;">
+      <div style="max-width:400px;margin:50px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid #fee2e2;">
+        <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+        <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;">Authentication Error</h3>
+        <p style="margin:0 0 20px;font-size:14.5px;color:#7f1d1d;word-break:break-word;line-height:1.5;">${error}</p>
+        <div style="font-size:12px;color:#9ca3af;">This window will close automatically...</div>
+      </div>
+      <script>
+        if (window.opener) {
+          window.opener.postMessage({ success: false, error: ${JSON.stringify(error)} }, ${JSON.stringify(clientUrl)});
+        }
+        setTimeout(function() { window.close(); }, 4000);
+      </script></body></html>`;
   }
-  return `<!DOCTYPE html><html><body><script>
-    window.opener && window.opener.postMessage({
-      success: true,
-      token: ${JSON.stringify(token)},
-      user: ${JSON.stringify(user)},
-      dashboardRoute: ${JSON.stringify(dashboardRoute)},
-      needsProfile: ${JSON.stringify(!!needsProfile)}
-    }, ${JSON.stringify(clientUrl)});
-    window.close();
-  </script><p>Authenticated! Closing window...</p></body></html>`;
+  return `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:30px;background:#f0fdf4;color:#166534;text-align:center;">
+    <div style="max-width:400px;margin:50px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid #dcfce7;">
+      <div style="font-size:40px;margin-bottom:12px;">🎉</div>
+      <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;">Authenticated!</h3>
+      <p style="margin:0 0 20px;font-size:14.5px;color:#14532d;">Completing your sign in...</p>
+      <div style="font-size:12px;color:#9ca3af;">Closing window...</div>
+    </div>
+    <script>
+      if (window.opener) {
+        window.opener.postMessage({
+          success: true,
+          token: ${JSON.stringify(token)},
+          user: ${JSON.stringify(user)},
+          dashboardRoute: ${JSON.stringify(dashboardRoute)},
+          needsProfile: ${JSON.stringify(!!needsProfile)}
+        }, ${JSON.stringify(clientUrl)});
+      }
+      setTimeout(function() { window.close(); }, 800);
+    </script></body></html>`;
 }
 
 // ─── GOOGLE OAuth ─────────────────────────────────────────────────────────────
@@ -151,7 +169,8 @@ router.get('/google', (req, res) => {
   const origin = req.query.origin || '';
   const state = encodeURIComponent(origin);
 
-  const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/google/callback`);
+  const serverUrl = (process.env.SERVER_URL || 'http://localhost:5000').replace(/\/+$/, '');
+  const redirect = encodeURIComponent(`${serverUrl}/api/oauth/google/callback`);
   const scope    = encodeURIComponent('openid email profile');
   res.redirect(
     `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${state}&access_type=offline`
@@ -167,7 +186,8 @@ router.get('/google/callback', async (req, res) => {
     const { code, state } = req.query;
     if (!code) throw new Error('Missing authorization code');
 
-    const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/google/callback`;
+    const serverUrl = (process.env.SERVER_URL || 'http://localhost:5000').replace(/\/+$/, '');
+    const redirectUri = `${serverUrl}/api/oauth/google/callback`;
 
     // Exchange code for access_token
     const tokenData = await postJson('https://oauth2.googleapis.com/token', {
@@ -208,7 +228,8 @@ router.get('/github', (req, res) => {
   const origin = req.query.origin || '';
   const state = encodeURIComponent(origin);
 
-  const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/github/callback`);
+  const serverUrl = (process.env.SERVER_URL || 'http://localhost:5000').replace(/\/+$/, '');
+  const redirect = encodeURIComponent(`${serverUrl}/api/oauth/github/callback`);
   res.redirect(
     `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect}&scope=user:email&state=${state}`
   );
@@ -282,7 +303,8 @@ router.get('/microsoft', (req, res) => {
   const origin = req.query.origin || '';
   const state = encodeURIComponent(origin);
 
-  const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/microsoft/callback`);
+  const serverUrl = (process.env.SERVER_URL || 'http://localhost:5000').replace(/\/+$/, '');
+  const redirect = encodeURIComponent(`${serverUrl}/api/oauth/microsoft/callback`);
   const scope    = encodeURIComponent('openid email profile User.Read');
   res.redirect(
     `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${state}`
@@ -294,7 +316,8 @@ router.get('/microsoft/callback', async (req, res) => {
     const { code, state } = req.query;
     if (!code) throw new Error('Missing authorization code');
 
-    const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/microsoft/callback`;
+    const serverUrl = (process.env.SERVER_URL || 'http://localhost:5000').replace(/\/+$/, '');
+    const redirectUri = `${serverUrl}/api/oauth/microsoft/callback`;
 
     // Exchange code for access_token
     const params = new URLSearchParams({

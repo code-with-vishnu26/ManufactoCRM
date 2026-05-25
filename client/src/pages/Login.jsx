@@ -46,11 +46,27 @@ export default function Login() {
   // Social authentications listener — receives JWT from server OAuth callback popup
   useEffect(() => {
     const handleSocialAuthMessage = async (e) => {
-      // Only accept messages from our own origin OR from the server
-      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-      const serverOrigin = new URL(serverUrl).origin;
-      const allowedOrigins = [window.location.origin, 'http://localhost:5000', serverOrigin];
-      if (!allowedOrigins.includes(e.origin) && !e.origin.includes('localhost')) return;
+      // Robustly construct backend URL origin validation
+      let serverOrigin = '';
+      try {
+        const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+        if (serverUrl.startsWith('http')) {
+          serverOrigin = new URL(serverUrl).origin;
+        }
+      } catch (err) {
+        console.error('Failed to parse VITE_API_URL origin:', err);
+      }
+
+      const allowedOrigins = [window.location.origin, 'http://localhost:5000'];
+      if (serverOrigin) allowedOrigins.push(serverOrigin);
+
+      // Verify origin with strong fallbacks (e.g. railway.app subdomain match or localhost)
+      const isAllowedOrigin = allowedOrigins.includes(e.origin) || 
+                              e.origin.includes('localhost') || 
+                              e.origin.endsWith('railway.app');
+
+      if (!isAllowedOrigin) return;
+
       if (e.data && e.data.success && e.data.token && e.data.user) {
         toast.loading(`Signing in...`, { id: 'social-auth' });
         // Directly save the session using the token returned from the server OAuth callback
