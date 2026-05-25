@@ -135,32 +135,22 @@ function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, c
         setTimeout(function() { window.close(); }, 4000);
       </script></body></html>`;
   }
-  return `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:30px;background:#f0fdf4;color:#166534;text-align:center;">
-    <div style="max-width:400px;margin:50px auto;padding:24px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.08);border:1px solid #dcfce7;">
-      <div style="font-size:40px;margin-bottom:12px;">🎉</div>
-      <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;">Authenticated!</h3>
-      <p style="margin:0 0 20px;font-size:14.5px;color:#14532d;">Completing your sign in...</p>
-      <div id="status" style="font-size:12px;color:#9ca3af;">Closing window...</div>
-    </div>
-    <script>
-      try {
-        if (window.opener) {
-          window.opener.postMessage({
-            success: true,
-            token: ${JSON.stringify(token)},
-            user: ${JSON.stringify(user)},
-            dashboardRoute: ${JSON.stringify(dashboardRoute)},
-            needsProfile: ${JSON.stringify(!!needsProfile)}
-          }, ${JSON.stringify(clientUrl)});
-          document.getElementById('status').innerText = 'Sign in message sent successfully! Closing...';
-        } else {
-          document.getElementById('status').innerHTML = '<span style="color:#b91c1c;font-weight:bold;">Error: Connection to main website lost (window.opener is missing)</span><br><span style="font-size:11px;color:#4b5563;">Please refresh your login page and try again!</span>';
-        }
-      } catch (err) {
-        document.getElementById('status').innerHTML = '<span style="color:#b91c1c;font-weight:bold;">Message transmission failed: ' + err.message + '</span>';
+  return `<!DOCTYPE html><html><body><script>
+    try {
+      if (window.opener) {
+        window.opener.postMessage({
+          success: true,
+          token: ${JSON.stringify(token)},
+          user: ${JSON.stringify(user)},
+          dashboardRoute: ${JSON.stringify(dashboardRoute)},
+          needsProfile: ${JSON.stringify(!!needsProfile)}
+        }, ${JSON.stringify(clientUrl)});
       }
-      setTimeout(function() { window.close(); }, 1500);
-    </script></body></html>`;
+    } catch (e) {
+      console.error('Failed to postMessage:', e);
+    }
+    window.close();
+  </script></body></html>`;
 }
 
 // ─── GOOGLE OAuth ─────────────────────────────────────────────────────────────
