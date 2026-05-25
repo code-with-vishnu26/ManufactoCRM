@@ -72,10 +72,24 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [errors, setErrors] = useState({});
-  const { register, socialLogin, loading } = useAuth();
+  const { register, socialLogin, loading, user } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
   const [showBrowseModal, setShowBrowseModal] = useState(false);
+
+  // Redirect if already logged in (prevents back-button loop to register page)
+  useEffect(() => {
+    if (user) {
+      const dashboardRoutes = {
+        admin:           '/admin/dashboard',
+        team_lead:       '/teamlead/dashboard',
+        sales_executive: '/sales/dashboard',
+        webpage:         '/home',
+      };
+      const redirectRoute = dashboardRoutes[user.role] || '/sales/dashboard';
+      navigate(redirectRoute, { replace: true });
+    }
+  }, [user, navigate]);
 
   // Social authentications listener — receives JWT from server OAuth callback popup
   useEffect(() => {
@@ -119,7 +133,7 @@ export default function Register() {
     const left   = window.screen.width  / 2 - width  / 2;
     const top    = window.screen.height / 2 - height / 2;
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const oauthUrl = `${backendUrl}/oauth/${provider}`;
+    const oauthUrl = `${backendUrl}/oauth/${provider}?origin=${encodeURIComponent(window.location.origin)}`;
     window.open(
       oauthUrl,
       `oauth_${provider}`,

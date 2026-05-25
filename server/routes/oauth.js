@@ -118,8 +118,8 @@ async function handleSocialUser({ name, email, avatar, provider }) {
 }
 
 /** Build the HTML page that posts result to the opener and closes itself */
-function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error }) {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, clientOrigin }) {
+  const clientUrl = clientOrigin || process.env.CLIENT_URL || 'http://localhost:5173';
   if (error) {
     return `<!DOCTYPE html><html><body><script>
       window.opener && window.opener.postMessage({ success: false, error: ${JSON.stringify(error)} }, ${JSON.stringify(clientUrl)});
@@ -148,10 +148,13 @@ router.get('/google', (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID;
   if (!clientId) return res.status(503).send('Google OAuth not configured. Add GOOGLE_CLIENT_ID to server .env');
 
+  const origin = req.query.origin || '';
+  const state = encodeURIComponent(origin);
+
   const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/google/callback`);
   const scope    = encodeURIComponent('openid email profile');
   res.redirect(
-    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&access_type=offline`
+    `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${state}&access_type=offline`
   );
 });
 
@@ -161,7 +164,7 @@ router.get('/google', (req, res) => {
  */
 router.get('/google/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) throw new Error('Missing authorization code');
 
     const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/google/callback`;
@@ -189,10 +192,10 @@ router.get('/google/callback', async (req, res) => {
       provider: 'google',
     });
 
-    res.send(buildCallbackHtml(result));
+    res.send(buildCallbackHtml({ ...result, clientOrigin: state ? decodeURIComponent(state) : '' }));
   } catch (err) {
     console.error('[OAuth/Google]', err.message);
-    res.send(buildCallbackHtml({ error: err.message }));
+    res.send(buildCallbackHtml({ error: err.message, clientOrigin: req.query.state ? decodeURIComponent(req.query.state) : '' }));
   }
 });
 
@@ -202,15 +205,18 @@ router.get('/github', (req, res) => {
   const clientId = process.env.GITHUB_CLIENT_ID;
   if (!clientId) return res.status(503).send('GitHub OAuth not configured. Add GITHUB_CLIENT_ID to server .env');
 
+  const origin = req.query.origin || '';
+  const state = encodeURIComponent(origin);
+
   const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/github/callback`);
   res.redirect(
-    `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect}&scope=user:email`
+    `https://github.com/login/oauth/authorize?client_id=${clientId}&redirect_uri=${redirect}&scope=user:email&state=${state}`
   );
 });
 
 router.get('/github/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) throw new Error('Missing authorization code');
 
     // Exchange code for access_token
@@ -260,10 +266,10 @@ router.get('/github/callback', async (req, res) => {
       provider: 'github',
     });
 
-    res.send(buildCallbackHtml(result));
+    res.send(buildCallbackHtml({ ...result, clientOrigin: state ? decodeURIComponent(state) : '' }));
   } catch (err) {
     console.error('[OAuth/GitHub]', err.message);
-    res.send(buildCallbackHtml({ error: err.message }));
+    res.send(buildCallbackHtml({ error: err.message, clientOrigin: req.query.state ? decodeURIComponent(req.query.state) : '' }));
   }
 });
 
@@ -273,16 +279,19 @@ router.get('/microsoft', (req, res) => {
   const clientId = process.env.MICROSOFT_CLIENT_ID;
   if (!clientId) return res.status(503).send('Microsoft OAuth not configured. Add MICROSOFT_CLIENT_ID to server .env');
 
+  const origin = req.query.origin || '';
+  const state = encodeURIComponent(origin);
+
   const redirect = encodeURIComponent(`${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/microsoft/callback`);
   const scope    = encodeURIComponent('openid email profile User.Read');
   res.redirect(
-    `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}`
+    `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${clientId}&redirect_uri=${redirect}&response_type=code&scope=${scope}&state=${state}`
   );
 });
 
 router.get('/microsoft/callback', async (req, res) => {
   try {
-    const { code } = req.query;
+    const { code, state } = req.query;
     if (!code) throw new Error('Missing authorization code');
 
     const redirectUri = `${process.env.SERVER_URL || 'http://localhost:5000'}/api/oauth/microsoft/callback`;
@@ -339,10 +348,10 @@ router.get('/microsoft/callback', async (req, res) => {
       provider: 'microsoft',
     });
 
-    res.send(buildCallbackHtml(result));
+    res.send(buildCallbackHtml({ ...result, clientOrigin: state ? decodeURIComponent(state) : '' }));
   } catch (err) {
     console.error('[OAuth/Microsoft]', err.message);
-    res.send(buildCallbackHtml({ error: err.message }));
+    res.send(buildCallbackHtml({ error: err.message, clientOrigin: req.query.state ? decodeURIComponent(req.query.state) : '' }));
   }
 });
 

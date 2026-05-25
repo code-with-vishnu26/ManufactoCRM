@@ -88,7 +88,7 @@ export default function Login() {
     const top    = window.screen.height / 2 - height / 2;
     // Point to real backend OAuth endpoint
     const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const oauthUrl = `${backendUrl}/oauth/${provider}`;
+    const oauthUrl = `${backendUrl}/oauth/${provider}?origin=${encodeURIComponent(window.location.origin)}`;
     window.open(
       oauthUrl,
       `oauth_${provider}`,
