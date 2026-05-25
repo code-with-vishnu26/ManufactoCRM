@@ -140,19 +140,26 @@ function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, c
       <div style="font-size:40px;margin-bottom:12px;">🎉</div>
       <h3 style="margin:0 0 10px;font-size:18px;font-weight:700;">Authenticated!</h3>
       <p style="margin:0 0 20px;font-size:14.5px;color:#14532d;">Completing your sign in...</p>
-      <div style="font-size:12px;color:#9ca3af;">Closing window...</div>
+      <div id="status" style="font-size:12px;color:#9ca3af;">Closing window...</div>
     </div>
     <script>
-      if (window.opener) {
-        window.opener.postMessage({
-          success: true,
-          token: ${JSON.stringify(token)},
-          user: ${JSON.stringify(user)},
-          dashboardRoute: ${JSON.stringify(dashboardRoute)},
-          needsProfile: ${JSON.stringify(!!needsProfile)}
-        }, ${JSON.stringify(clientUrl)});
+      try {
+        if (window.opener) {
+          window.opener.postMessage({
+            success: true,
+            token: ${JSON.stringify(token)},
+            user: ${JSON.stringify(user)},
+            dashboardRoute: ${JSON.stringify(dashboardRoute)},
+            needsProfile: ${JSON.stringify(!!needsProfile)}
+          }, ${JSON.stringify(clientUrl)});
+          document.getElementById('status').innerText = 'Sign in message sent successfully! Closing...';
+        } else {
+          document.getElementById('status').innerHTML = '<span style="color:#b91c1c;font-weight:bold;">Error: Connection to main website lost (window.opener is missing)</span><br><span style="font-size:11px;color:#4b5563;">Please refresh your login page and try again!</span>';
+        }
+      } catch (err) {
+        document.getElementById('status').innerHTML = '<span style="color:#b91c1c;font-weight:bold;">Message transmission failed: ' + err.message + '</span>';
       }
-      setTimeout(function() { window.close(); }, 800);
+      setTimeout(function() { window.close(); }, 1500);
     </script></body></html>`;
 }
 
