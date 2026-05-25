@@ -129,10 +129,12 @@ function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, c
         <div style="font-size:12px;color:#9ca3af;">This window will close automatically...</div>
       </div>
       <script>
-        if (window.opener) {
-          window.opener.postMessage({ success: false, error: ${JSON.stringify(error)} }, ${JSON.stringify(clientUrl)});
-        }
-        setTimeout(function() { window.close(); }, 4000);
+        setTimeout(function() {
+          if (window.opener) {
+            window.opener.postMessage({ success: false, error: ${JSON.stringify(error)} }, ${JSON.stringify(clientUrl)});
+          }
+          setTimeout(function() { window.close(); }, 8000);
+        }, 300);
       </script></body></html>`;
   }
   return `<!DOCTYPE html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;padding:30px;background:#f0fdf4;color:#166534;text-align:center;">
@@ -143,16 +145,18 @@ function buildCallbackHtml({ token, user, dashboardRoute, needsProfile, error, c
       <div style="font-size:12px;color:#9ca3af;">Closing window...</div>
     </div>
     <script>
-      if (window.opener) {
-        window.opener.postMessage({
-          success: true,
-          token: ${JSON.stringify(token)},
-          user: ${JSON.stringify(user)},
-          dashboardRoute: ${JSON.stringify(dashboardRoute)},
-          needsProfile: ${JSON.stringify(!!needsProfile)}
-        }, ${JSON.stringify(clientUrl)});
-      }
-      setTimeout(function() { window.close(); }, 800);
+      setTimeout(function() {
+        if (window.opener) {
+          window.opener.postMessage({
+            success: true,
+            token: ${JSON.stringify(token)},
+            user: ${JSON.stringify(user)},
+            dashboardRoute: ${JSON.stringify(dashboardRoute)},
+            needsProfile: ${JSON.stringify(!!needsProfile)}
+          }, ${JSON.stringify(clientUrl)});
+        }
+        setTimeout(function() { window.close(); }, 8000);
+      }, 300);
     </script></body></html>`;
 }
 
