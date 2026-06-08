@@ -37,16 +37,15 @@ const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// CORS — include Vercel wildcard for production deployments
+// CORS — allow any origin so LAN and deployed clients can connect
 app.use(cors({
-  origin: [
-    process.env.CLIENT_URL,
-    'http://localhost:5173',
-    'http://localhost:3000',
-    'https://*.vercel.app'
-  ],
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, Postman)
+    // and any origin while running locally or sharing via LAN/ngrok
+    callback(null, true);
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
@@ -84,9 +83,11 @@ app.use((req, res) => {
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
+// Listen on 0.0.0.0 so the server is reachable from LAN and shared links
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n🚀 ManufactoCRM AI Server running on port ${PORT} in ${process.env.NODE_ENV} mode`);
-  console.log(`📍 API: http://localhost:${PORT}/api\n`);
+  console.log(`📍 Local API:   http://localhost:${PORT}/api`);
+  console.log(`📍 Network API: http://<your-local-IP>:${PORT}/api\n`);
 });
 
 // Handle unhandled promise rejections

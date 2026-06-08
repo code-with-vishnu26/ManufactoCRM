@@ -59,25 +59,10 @@ git push -u origin main
 ```
 NODE_ENV=production
 PORT=5000
-MONGO_URI=mongodb+srv://manufactocrm:yourpassword@cluster0.xxxxx.mongodb.net/manufactocrm
+MONGODB_URI=mongodb+srv://manufactocrm:yourpassword@cluster0.xxxxx.mongodb.net/manufactocrm
 JWT_SECRET=ManufactoCRM_Super_Secret_Key_2026_Enterprise_Grade
 JWT_EXPIRE=30d
 CLIENT_URL=https://your-app.vercel.app
-SERVER_URL=https://your-backend.railway.app
-
-# Optional: Email Setup (SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=your-email@gmail.com
-SMTP_PASS=your-app-password
-SMTP_FROM=ManufactoCRM AI <your-email@gmail.com>
-
-# Optional: Social Authentication (OAuth)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-GITHUB_CLIENT_ID=your-github-client-id
-GITHUB_CLIENT_SECRET=your-github-client-secret
 ```
 
 7. Railway will automatically deploy. Note your backend URL:
@@ -187,20 +172,7 @@ Vercel (React + Vite)
 Railway (Node.js + Express)
     ↕ MongoDB Atlas URI
 MongoDB Atlas (Cloud DB)
-```
 
 ---
 
-## Estimated Costs
-
-| Service | Free Tier Limit | Cost After |
-|---------|-----------------|------------|
-| MongoDB Atlas | 512MB storage | $9/month |
-| Railway | $5 credit/month | $5+/month |
-| Vercel | 100GB bandwidth | $20/month |
-
-> **Total for startup**: ~$0-5/month on free tiers 🎉
-
----
-
-*Built with ❤️ by ManufactoCRM AI — v2.0*
+*Built by Vishnu — v2.0*   
