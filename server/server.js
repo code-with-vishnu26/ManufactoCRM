@@ -66,7 +66,14 @@ app.use('/api/reports',   require('./routes/reports'));
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'ManufactoCRM AI Server is running 🚀', timestamp: new Date() });
+  const mongoose = require('mongoose');
+  res.json({ 
+    status: 'ok', 
+    message: 'ManufactoCRM AI Server is running 🚀', 
+    dbHost: mongoose.connection.host,
+    dbName: mongoose.connection.db?.databaseName,
+    timestamp: new Date() 
+  });
 });
 
 // Seed route (development only)
