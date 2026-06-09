@@ -215,34 +215,50 @@ const register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Disposable or temporary emails are not allowed. Please use a valid, original email address.' });
     }
 
-    // 2. DNS MX Record lookup to verify original vs fake email
-    let hasMx = true;
+    // 2. DNS MX Record lookup — STRICT: reject if domain has no MX records or lookup fails
+    let hasMx = false;
     try {
       const mx = await dns.resolveMx(domain);
-      if (!mx || mx.length === 0) {
-        hasMx = false;
+      if (mx && mx.length > 0) {
+        hasMx = true;
       }
     } catch (dnsErr) {
-      // Only fail explicitly if domain doesn't exist (ENOTFOUND or ENODATA). Allow passing if offline (e.g. timeout)
-      if (dnsErr.code === 'ENOTFOUND' || dnsErr.code === 'ENODATA') {
-        hasMx = false;
-      }
+      // Any DNS failure (ENOTFOUND, ENODATA, timeout) = reject
+      hasMx = false;
     }
 
     if (!hasMx) {
-      return res.status(400).json({ success: false, message: 'Invalid or non-existent email domain (fake email). Please use a valid, original email.' });
+      return res.status(400).json({ success: false, message: 'Invalid or non-existent email domain. Please use a real email address (e.g. Gmail, Outlook, Yahoo, or your company email).' });
     }
 
     // Check duplicate email
     const existingUser = await User.findOne({ email: lowerEmail });
     if (existingUser) {
+      // If user exists but is not verified, resend the code
+      if (!existingUser.isVerified) {
+        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        existingUser.verificationCode = verificationCode;
+        existingUser.verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000);
+        await existingUser.save({ validateBeforeSave: false });
+        await sendVerificationEmail(lowerEmail, existingUser.name, verificationCode);
+        return res.status(200).json({
+          success: true,
+          needsVerification: true,
+          email: lowerEmail,
+          message: 'Verification code resent! Please check your email.',
+        });
+      }
       return res.status(400).json({ success: false, message: 'Email already registered. Please login.' });
     }
 
     // Validate role
     const assignedRole = role && ALLOWED_ROLES.includes(role) ? role : 'sales_executive';
 
-    // Create user — verified immediately, no email step required
+    // Generate 6-digit OTP
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    // Create user — NOT verified yet
     const user = await User.create({
       name: name.trim(),
       email: lowerEmail,
@@ -251,23 +267,27 @@ const register = async (req, res, next) => {
       phone: phone || '',
       address: address || '',
       department: department || 'Sales',
-      isVerified: true,
+      isVerified: false,
       isActive: true,
+      verificationCode,
+      verificationCodeExpiry,
     });
 
-    const token = generateToken(user._id);
+    // Send verification email
+    await sendVerificationEmail(lowerEmail, name.trim(), verificationCode);
 
+    // Return without token — user must verify email first
     res.status(201).json({
       success: true,
-      message: 'Account created successfully! Welcome aboard.',
-      token,
-      user: safeUser(user),
-      dashboardRoute: DASHBOARD_ROUTES[user.role] || '/sales/dashboard',
+      needsVerification: true,
+      email: lowerEmail,
+      message: 'Account created! Please check your email for the 6-digit verification code.',
     });
   } catch (error) {
     next(error);
   }
 };
+
 
 // ============================================================
 // @desc    Verify email code

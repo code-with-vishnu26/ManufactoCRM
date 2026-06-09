@@ -60,15 +60,53 @@ export default function Home() {
   }, [showDemo, isPlaying, playbackSpeed]);
 
   const getTourPhase = (t) => {
-    if (t < 20) return { label: 'Analyzing AutoOEM Lead Pipeline', percent: 15, details: 'ManufactoCRM AI automatically scans and maps automotive corporate structures...' };
-    if (t < 40) return { label: 'Invoking ManufactoCRM AI Assistant', percent: 35, details: 'Drafting specialized, highly contextualized email proposals...' };
-    if (t < 60) return { label: 'Seeding automatic eQTL summaries', percent: 50, details: 'Extracting key clinical metrics and compiling pharmaceutical profiles...' };
-    if (t < 80) return { label: 'Reviewing Team Lead conversions', percent: 68, details: 'Analyzing sales targets, leaderboards, and conversion progress...' };
-    if (t < 100) return { label: 'Auto-syncing SAP ERP webhooks', percent: 85, details: 'Retrieving order records and matching client account balances...' };
-    return { label: 'Exporting reports to Excel & PDF', percent: 100, details: 'Formatting final spreadsheets and packaging full system reports...' };
+    if (t < 20) return {
+      label: 'Analyzing AutoOEM Lead Pipeline',
+      percent: 15,
+      details: 'ManufactoCRM AI automatically scans and maps automotive corporate structures across 50+ accounts...',
+      badge: '🔍 Scanning 247 leads',
+      metrics: [{ label: 'Hot Leads', value: '18' }, { label: 'Pipeline Value', value: '₹4.2Cr' }],
+    };
+    if (t < 40) return {
+      label: 'AI Drafting Personalized Proposals',
+      percent: 35,
+      details: 'ManufactoCRM AI is generating 12 hyper-personalized email proposals based on lead industry data...',
+      badge: '✍️ Writing 12 proposals',
+      metrics: [{ label: 'Avg Open Rate', value: '68%' }, { label: 'Reply Rate', value: '34%' }],
+    };
+    if (t < 60) return {
+      label: 'Smart Pipeline Stage Detection',
+      percent: 52,
+      details: 'Classifying leads by buying intent using NLP on call notes, emails, and demo requests...',
+      badge: '🧠 AI scoring 89 deals',
+      metrics: [{ label: 'Ready to Close', value: '9' }, { label: 'Win Probability', value: '74%' }],
+    };
+    if (t < 80) return {
+      label: 'Reviewing Team Lead Performance',
+      percent: 70,
+      details: 'Analyzing sales targets, leaderboard rankings, and individual conversion rates across 6 territories...',
+      badge: '📊 6 team dashboards',
+      metrics: [{ label: 'Target Achieved', value: '83%' }, { label: 'Top Closer', value: 'Priya M.' }],
+    };
+    if (t < 100) return {
+      label: 'Auto-syncing SAP ERP Webhooks',
+      percent: 85,
+      details: 'Retrieving live order records, invoice statuses, and matching client account balances from SAP...',
+      badge: '⚡ 342 records synced',
+      metrics: [{ label: 'Sync Success', value: '99.8%' }, { label: 'Last Sync', value: '2s ago' }],
+    };
+    return {
+      label: 'Exporting Reports to Excel & PDF',
+      percent: 100,
+      details: 'Packaging monthly sales summary, pipeline report, and AI insights into shareable formats...',
+      badge: '📁 Report ready!',
+      metrics: [{ label: 'Total Revenue', value: '₹12.7Cr' }, { label: 'Growth', value: '+38%' }],
+    };
   };
 
   const currentPhase = getTourPhase(currentTime);
+  // Only re-animate when the phase label changes, not every second
+  const phaseKey = currentPhase.label;
 
   return (
     <div style={{ background: 'var(--pub-bg)', color: 'var(--pub-text)', fontFamily: "'Inter', sans-serif" }}>
@@ -353,16 +391,32 @@ export default function Home() {
                 <div style={{ position: 'absolute', top: 50, left: 100, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
                 
                 {/* Live simulation display card */}
-                <motion.div key={currentTime} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                <motion.div key={currentPhase.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
                   style={{ width: '100%', maxWidth: 580, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 28px', backdropFilter: 'blur(10px)', textAlign: 'center', position: 'relative', zIndex: 2 }}>
                   <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#818cf8', background: 'rgba(99,102,241,0.1)', padding: '4px 12px', borderRadius: 40, textTransform: 'uppercase', letterSpacing: 0.5 }}>Simulated Workspace Tour</span>
-                  <h3 style={{ fontSize: '1.4rem', fontWeight: 800, marginTop: '1rem', color: '#fff' }}>{currentPhase.label}</h3>
-                  <p style={{ fontSize: '0.92rem', color: 'rgba(255,255,255,0.6)', marginTop: '0.5rem', lineHeight: 1.6 }}>{currentPhase.details}</p>
                   
-                  {/* Mock progress indicator */}
+                  {/* Live badge */}
+                  <div style={{ display: 'inline-block', marginLeft: 8, fontSize: '0.72rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.1)', padding: '3px 10px', borderRadius: 40, border: '1px solid rgba(52,211,153,0.25)' }}>
+                    {currentPhase.badge}
+                  </div>
+
+                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginTop: '1rem', color: '#fff' }}>{currentPhase.label}</h3>
+                  <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.55)', marginTop: '0.5rem', lineHeight: 1.6 }}>{currentPhase.details}</p>
+
+                  {/* Metric badges */}
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: '1.2rem', flexWrap: 'wrap' }}>
+                    {currentPhase.metrics.map((m, i) => (
+                      <div key={i} style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '8px 16px', textAlign: 'center' }}>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#a5b4fc' }}>{m.value}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>{m.label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Progress bar */}
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: '1.5rem' }}>
-                    <div style={{ width: 140, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
-                      <motion.div animate={{ width: `${currentPhase.percent}%` }} style={{ height: '100%', background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius: 3 }} />
+                    <div style={{ width: 160, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+                      <motion.div animate={{ width: `${currentPhase.percent}%` }} transition={{ duration: 0.6, ease: 'easeOut' }} style={{ height: '100%', background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius: 3 }} />
                     </div>
                     <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#a5b4fc' }}>{currentPhase.percent}% Complete</span>
                   </div>
@@ -370,7 +424,7 @@ export default function Home() {
 
                 {/* Video Tour timeline state floating badges */}
                 <div style={{ position: 'absolute', bottom: 12, left: 16, fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>
-                  Active Module: MERN Realtime Client Synchronization
+                  Active Module: Industrial Sales Automation Workflow
                 </div>
               </div>
 

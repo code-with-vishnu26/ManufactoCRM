@@ -72,10 +72,12 @@ export default function Register() {
   const [showConfirm, setShowConfirm] = useState(false);
 
   const [errors, setErrors] = useState({});
-  const { register, socialLogin, loading, user } = useAuth();
+  const { register, verifyCode, socialLogin, loading, user } = useAuth();
   const { theme, toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
   const [showBrowseModal, setShowBrowseModal] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
 
   // Redirect if already logged in (prevents back-button loop to register page)
   useEffect(() => {
@@ -220,10 +222,58 @@ export default function Register() {
     });
 
     if (res.success) {
-      toast.success('Welcome aboard! 🚀', { id: 'register' });
-      navigate(res.dashboardRoute, { replace: true });
+      if (res.needsVerification) {
+        setRegisteredEmail(res.email);
+        toast.success('Account created! Check your email for the verification code. 📧', { id: 'register' });
+        setStep(3);
+      } else {
+        toast.success('Welcome aboard! 🚀', { id: 'register' });
+        navigate(res.dashboardRoute, { replace: true });
+      }
     } else {
       toast.error(res.message, { id: 'register' });
+    }
+  };
+
+  const handleOtpChange = (index, value) => {
+    if (!/^[0-9]?$/.test(value)) return;
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+    if (value && index < 5) {
+      document.getElementById(`otp-${index + 1}`)?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      document.getElementById(`otp-${index - 1}`)?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newOtp = [...otp];
+    pasted.split('').forEach((ch, i) => { newOtp[i] = ch; });
+    setOtp(newOtp);
+    document.getElementById(`otp-${Math.min(pasted.length, 5)}`)?.focus();
+  };
+
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    const code = otp.join('');
+    if (code.length !== 6) {
+      toast.error('Please enter the complete 6-digit code');
+      return;
+    }
+    toast.loading('Verifying...', { id: 'verify' });
+    const res = await verifyCode(registeredEmail, code);
+    if (res.success) {
+      toast.success('Email verified! Welcome to ManufactoCRM AI 🚀', { id: 'verify' });
+      navigate(res.dashboardRoute, { replace: true });
+    } else {
+      toast.error(res.message, { id: 'verify' });
     }
   };
 
@@ -867,7 +917,132 @@ export default function Register() {
             </motion.div>
           )}
 
+          {/* ====== STEP 3: EMAIL VERIFICATION ====== */}
+          {step === 3 && (
+            <motion.div
+              key="step-3"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              transition={{ duration: 0.4 }}
+              className="auth-panel-right"
+              style={{
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--border-color)',
+                borderRadius: 20,
+                padding: '2rem 1.8rem',
+                boxShadow: '0 10px 35px rgba(0,0,0,0.03)',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 20,
+                boxSizing: 'border-box',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+              }}
+            >
+              {/* Icon */}
+              <div style={{
+                width: 72, height: 72, borderRadius: '50%',
+                background: 'linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.15))',
+                border: '1.5px solid rgba(99,102,241,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <MdEmail size={32} color="#6366f1" />
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: 22, fontWeight: 900, margin: '0 0 8px', letterSpacing: '-0.4px' }}>
+                  Verify Your Email
+                </h3>
+                <p style={{ fontSize: 14, color: 'var(--text-secondary)', margin: 0, lineHeight: 1.6 }}>
+                  We sent a 6-digit code to<br />
+                  <strong style={{ color: 'var(--text-primary)' }}>{registeredEmail}</strong>
+                </p>
+              </div>
+
+              <form onSubmit={handleVerifyOtp} style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+                {/* OTP Boxes */}
+                <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }} onPaste={handleOtpPaste}>
+                  {otp.map((digit, i) => (
+                    <input
+                      key={i}
+                      id={`otp-${i}`}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={digit}
+                      onChange={e => handleOtpChange(i, e.target.value)}
+                      onKeyDown={e => handleOtpKeyDown(i, e)}
+                      style={{
+                        width: 50, height: 58, textAlign: 'center',
+                        fontSize: 24, fontWeight: 800, borderRadius: 10,
+                        border: `2px solid ${digit ? '#6366f1' : 'var(--border-color)'}`,
+                        background: digit ? 'rgba(99,102,241,0.06)' : 'var(--bg-primary)',
+                        color: 'var(--text-primary)', outline: 'none',
+                        transition: 'all 0.15s',
+                      }}
+                      onFocus={e => { e.target.style.borderColor = '#6366f1'; e.target.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.15)'; }}
+                      onBlur={e => { e.target.style.borderColor = digit ? '#6366f1' : 'var(--border-color)'; e.target.style.boxShadow = 'none'; }}
+                    />
+                  ))}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || otp.join('').length !== 6}
+                  style={{
+                    width: '100%', maxWidth: 320, padding: '13px 18px',
+                    borderRadius: 10, border: 'none',
+                    background: (loading || otp.join('').length !== 6)
+                      ? 'var(--bg-primary)'
+                      : 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                    color: (loading || otp.join('').length !== 6) ? 'var(--text-muted)' : '#fff',
+                    fontSize: '1rem', fontWeight: 750,
+                    cursor: (loading || otp.join('').length !== 6) ? 'not-allowed' : 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    boxShadow: otp.join('').length === 6 ? '0 4px 15px rgba(99,102,241,0.3)' : 'none',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {loading ? (
+                    <><div style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff', borderRadius: '50%', animation: 'spin 0.7s linear infinite' }} /> Verifying...</>
+                  ) : (
+                    <><MdCheck size={18} /> Verify & Continue</>
+                  )}
+                </button>
+
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', margin: 0 }}>
+                  Didn't get the code?{' '}
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      toast.loading('Resending...', { id: 'resend' });
+                      const res = await register({
+                        name: form.name, email: registeredEmail, password: form.password,
+                        role: selectedRole, phone: form.phone, address: form.address, department: form.department,
+                      });
+                      if (res.success) toast.success('Code resent! Check your email.', { id: 'resend' });
+                      else toast.error(res.message, { id: 'resend' });
+                    }}
+                    style={{ background: 'none', border: 'none', color: '#6366f1', fontWeight: 700, cursor: 'pointer', fontSize: 13 }}
+                  >
+                    Resend Code
+                  </button>
+                </p>
+              </form>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <MdSecurity size={14} color="var(--text-muted)" />
+                <span style={{ fontSize: 12, color: 'var(--text-muted)', fontWeight: 600 }}>
+                  Code expires in 15 minutes
+                </span>
+              </div>
+            </motion.div>
+          )}
+
         </AnimatePresence>
+
       </div>
     </div>
 

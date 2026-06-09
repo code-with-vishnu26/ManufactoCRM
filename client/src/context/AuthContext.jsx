@@ -118,6 +118,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const { data } = await API.post('/auth/register', formData);
       if (data.success) {
+        // needsVerification: user must verify email before getting token
+        if (data.needsVerification) {
+          return {
+            success: true,
+            needsVerification: true,
+            email: data.email,
+            message: data.message,
+          };
+        }
+        // Legacy path: token returned immediately (shouldn't happen now)
         saveSession(data.token, data.user);
         return {
           success: true,
@@ -133,6 +143,7 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
 
   // ============================================================
   // VERIFY EMAIL CODE
