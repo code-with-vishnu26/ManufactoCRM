@@ -64,16 +64,81 @@ app.use('/api/activities',require('./routes/activities'));
 app.use('/api/ai',        require('./routes/ai'));
 app.use('/api/reports',   require('./routes/reports'));
 
-// Health check
-app.get('/api/health', (req, res) => {
+// Health check and SMTP self-test
+app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
-  res.json({ 
+  const nodemailer = require('nodemailer');
+  
+  const healthData = { 
     status: 'ok', 
     message: 'ManufactoCRM AI Server is running 🚀', 
     dbHost: mongoose.connection.host,
     dbName: mongoose.connection.db?.databaseName,
-    timestamp: new Date() 
-  });
+    timestamp: new Date(),
+    smtp: {
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE,
+      user: process.env.SMTP_USER,
+      passLength: process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0,
+      passHasSpaces: process.env.SMTP_PASS ? process.env.SMTP_PASS.includes(' ') : false,
+      from: process.env.SMTP_FROM
+    }
+  };
+
+  const testEmail = req.query.testEmail;
+  if (testEmail) {
+    try {
+      let transporter;
+      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+        const isGmail = process.env.SMTP_HOST.includes('gmail.com');
+        const transportOpts = isGmail 
+          ? {
+              service: 'gmail',
+              auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+              connectionTimeout: 10000,
+              timeout: 10000,
+            }
+          : {
+              host: process.env.SMTP_HOST,
+              port: parseInt(process.env.SMTP_PORT) || 587,
+              secure: process.env.SMTP_SECURE === 'true',
+              auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+              tls: { rejectUnauthorized: false },
+              connectionTimeout: 10000,
+              timeout: 10000,
+            };
+        transporter = nodemailer.createTransport(transportOpts);
+      } else {
+        throw new Error('SMTP credentials not configured in environment variables');
+      }
+
+      const info = await transporter.sendMail({
+        from: process.env.SMTP_FROM || '"ManufactoCRM AI" <no-reply@manufactocrm.com>',
+        to: testEmail,
+        subject: '🔍 SMTP Diagnostics — Test Email',
+        html: `<h3>SMTP Diagnostic Test</h3><p>If you received this, SMTP settings on Render are configured correctly! Time: ${new Date().toISOString()}</p>`
+      });
+
+      healthData.emailTest = {
+        success: true,
+        messageId: info.messageId,
+        envelope: info.envelope,
+        response: info.response
+      };
+    } catch (smtpErr) {
+      healthData.emailTest = {
+        success: false,
+        error: smtpErr.message,
+        code: smtpErr.code,
+        command: smtpErr.command,
+        response: smtpErr.response,
+        stack: smtpErr.stack
+      };
+    }
+  }
+
+  res.json(healthData);
 });
 
 // Seed route (development only)
