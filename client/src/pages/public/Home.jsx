@@ -42,71 +42,6 @@ const pricing = [
 
 export default function Home() {
   const [showDemo, setShowDemo] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [currentTime, setCurrentTime] = useState(12);
-  const [volume, setVolume] = useState(80);
-  const [playbackSpeed, setPlaybackSpeed] = useState('1.0x');
-  const [muted, setMuted] = useState(false);
-
-  useEffect(() => {
-    let interval;
-    if (showDemo && isPlaying) {
-      const multiplier = playbackSpeed === '2.0x' ? 2 : playbackSpeed === '1.5x' ? 1.5 : 1;
-      interval = setInterval(() => {
-        setCurrentTime(t => (t >= 120 ? 0 : t + 1));
-      }, 1000 / multiplier);
-    }
-    return () => clearInterval(interval);
-  }, [showDemo, isPlaying, playbackSpeed]);
-
-  const getTourPhase = (t) => {
-    if (t < 20) return {
-      label: 'Analyzing AutoOEM Lead Pipeline',
-      percent: 15,
-      details: 'ManufactoCRM AI automatically scans and maps automotive corporate structures across 50+ accounts...',
-      badge: '🔍 Scanning 247 leads',
-      metrics: [{ label: 'Hot Leads', value: '18' }, { label: 'Pipeline Value', value: '₹4.2Cr' }],
-    };
-    if (t < 40) return {
-      label: 'AI Drafting Personalized Proposals',
-      percent: 35,
-      details: 'ManufactoCRM AI is generating 12 hyper-personalized email proposals based on lead industry data...',
-      badge: '✍️ Writing 12 proposals',
-      metrics: [{ label: 'Avg Open Rate', value: '68%' }, { label: 'Reply Rate', value: '34%' }],
-    };
-    if (t < 60) return {
-      label: 'Smart Pipeline Stage Detection',
-      percent: 52,
-      details: 'Classifying leads by buying intent using NLP on call notes, emails, and demo requests...',
-      badge: '🧠 AI scoring 89 deals',
-      metrics: [{ label: 'Ready to Close', value: '9' }, { label: 'Win Probability', value: '74%' }],
-    };
-    if (t < 80) return {
-      label: 'Reviewing Team Lead Performance',
-      percent: 70,
-      details: 'Analyzing sales targets, leaderboard rankings, and individual conversion rates across 6 territories...',
-      badge: '📊 6 team dashboards',
-      metrics: [{ label: 'Target Achieved', value: '83%' }, { label: 'Top Closer', value: 'Priya M.' }],
-    };
-    if (t < 100) return {
-      label: 'Auto-syncing SAP ERP Webhooks',
-      percent: 85,
-      details: 'Retrieving live order records, invoice statuses, and matching client account balances from SAP...',
-      badge: '⚡ 342 records synced',
-      metrics: [{ label: 'Sync Success', value: '99.8%' }, { label: 'Last Sync', value: '2s ago' }],
-    };
-    return {
-      label: 'Exporting Reports to Excel & PDF',
-      percent: 100,
-      details: 'Packaging monthly sales summary, pipeline report, and AI insights into shareable formats...',
-      badge: '📁 Report ready!',
-      metrics: [{ label: 'Total Revenue', value: '₹12.7Cr' }, { label: 'Growth', value: '+38%' }],
-    };
-  };
-
-  const currentPhase = getTourPhase(currentTime);
-  // Only re-animate when the phase label changes, not every second
-  const phaseKey = currentPhase.label;
 
   return (
     <div style={{ background: 'var(--pub-bg)', color: 'var(--pub-text)', fontFamily: "'Inter', sans-serif" }}>
@@ -150,7 +85,7 @@ export default function Home() {
             >
               <MdRocketLaunch size={20} /> Get Started
             </Link>
-            <button onClick={() => { setShowDemo(true); setCurrentTime(0); setIsPlaying(true); }} style={{
+            <button onClick={() => setShowDemo(true)} style={{
               border: '1.5px solid var(--pub-card-border)', color: 'var(--pub-text)',
               fontWeight: 600, padding: '14px 32px', cursor: 'pointer',
               borderRadius: 12, fontSize: '1rem', display: 'inline-flex', alignItems: 'center', gap: 8,
@@ -378,94 +313,29 @@ export default function Home() {
               <div style={{ padding: '16px 24px', borderBottom: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <MdFactory size={20} color="#818cf8" />
-                  <span style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>ManufactoCRM AI — Interactive Product Tour</span>
+                  <span style={{ fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.3px' }}>ManufactoCRM AI — Product Tour</span>
                 </div>
                 <button onClick={() => setShowDemo(false)} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', borderRadius: '50%', width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#cbd5e1' }}>
                   <MdClose size={18} />
                 </button>
               </div>
 
-              {/* Simulated Screen */}
-              <div style={{ background: '#050515', height: 380, position: 'relative', overflow: 'hidden', padding: 24, display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                {/* Backdrop design */}
-                <div style={{ position: 'absolute', top: 50, left: 100, width: 250, height: 250, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 60%)', pointerEvents: 'none' }} />
-                
-                {/* Live simulation display card */}
-                <motion.div key={currentPhase.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-                  style={{ width: '100%', maxWidth: 580, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16, padding: '24px 28px', backdropFilter: 'blur(10px)', textAlign: 'center', position: 'relative', zIndex: 2 }}>
-                  <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#818cf8', background: 'rgba(99,102,241,0.1)', padding: '4px 12px', borderRadius: 40, textTransform: 'uppercase', letterSpacing: 0.5 }}>Simulated Workspace Tour</span>
-                  
-                  {/* Live badge */}
-                  <div style={{ display: 'inline-block', marginLeft: 8, fontSize: '0.72rem', fontWeight: 700, color: '#34d399', background: 'rgba(52,211,153,0.1)', padding: '3px 10px', borderRadius: 40, border: '1px solid rgba(52,211,153,0.25)' }}>
-                    {currentPhase.badge}
-                  </div>
-
-                  <h3 style={{ fontSize: '1.3rem', fontWeight: 800, marginTop: '1rem', color: '#fff' }}>{currentPhase.label}</h3>
-                  <p style={{ fontSize: '0.88rem', color: 'rgba(255,255,255,0.55)', marginTop: '0.5rem', lineHeight: 1.6 }}>{currentPhase.details}</p>
-
-                  {/* Metric badges */}
-                  <div style={{ display: 'flex', justifyContent: 'center', gap: 12, marginTop: '1.2rem', flexWrap: 'wrap' }}>
-                    {currentPhase.metrics.map((m, i) => (
-                      <div key={i} style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: 10, padding: '8px 16px', textAlign: 'center' }}>
-                        <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#a5b4fc' }}>{m.value}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.45)', marginTop: 2 }}>{m.label}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Progress bar */}
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, marginTop: '1.5rem' }}>
-                    <div style={{ width: 160, height: 6, background: 'rgba(255,255,255,0.08)', borderRadius: 3, overflow: 'hidden' }}>
-                      <motion.div animate={{ width: `${currentPhase.percent}%` }} transition={{ duration: 0.6, ease: 'easeOut' }} style={{ height: '100%', background: 'linear-gradient(90deg,#6366f1,#8b5cf6)', borderRadius: 3 }} />
-                    </div>
-                    <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#a5b4fc' }}>{currentPhase.percent}% Complete</span>
-                  </div>
-                </motion.div>
-
-                {/* Video Tour timeline state floating badges */}
-                <div style={{ position: 'absolute', bottom: 12, left: 16, fontSize: '0.8rem', color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>
-                  Active Module: Industrial Sales Automation Workflow
-                </div>
-              </div>
-
-              {/* Player Controllers */}
-              <div style={{ padding: '16px 24px', background: '#08081f', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1.5rem', flexWrap: 'wrap' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <button onClick={() => setIsPlaying(!isPlaying)} style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 8, padding: '8px 16px', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {isPlaying ? <MdPause size={18} /> : <MdPlayArrow size={18} />} {isPlaying ? 'Pause' : 'Play'}
-                  </button>
-                  
-                  {/* Timeline countdown */}
-                  <span style={{ fontSize: '0.82rem', color: '#cbd5e1', fontWeight: 600 }}>
-                    {Math.floor(currentTime / 60)}:{(currentTime % 60).toString().padStart(2, '0')} / 2:00
-                  </span>
-                </div>
-
-                {/* Progress bar controller */}
-                <div style={{ flex: 1, minWidth: 150, display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <input type="range" min="0" max="120" value={currentTime} onChange={e => setCurrentTime(parseInt(e.target.value))}
-                    style={{ flex: 1, accentColor: '#818cf8', height: 4, cursor: 'pointer' }} />
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  {/* Volume controller */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    <button onClick={() => setMuted(!muted)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', display: 'flex' }}>
-                      {muted || volume === 0 ? <MdVolumeMute size={18} /> : <MdVolumeUp size={18} />}
-                    </button>
-                    <input type="range" min="0" max="100" value={muted ? 0 : volume} onChange={e => { setVolume(parseInt(e.target.value)); setMuted(false); }}
-                      style={{ width: 60, accentColor: '#818cf8', cursor: 'pointer' }} />
-                  </div>
-
-                  {/* Playback speed selector */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <MdSpeed size={16} color="#94a3b8" />
-                    <select value={playbackSpeed} onChange={e => setPlaybackSpeed(e.target.value)}
-                      style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 6, color: '#fff', fontSize: '0.8rem', padding: '4px 6px', outline: 'none', cursor: 'pointer' }}>
-                      {['0.75x', '1.0x', '1.5x', '2.0x'].map(s => <option key={s} value={s}>{s}</option>)}
-                    </select>
-                  </div>
-                </div>
+              {/* Video Player */}
+              <div style={{ position: 'relative', width: '100%', paddingTop: '56.25%', background: '#000' }}>
+                <iframe
+                  src="https://www.youtube.com/embed/z1H35x9lXm8?autoplay=1&rel=0"
+                  title="ManufactoCRM AI Demo Video"
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    border: 'none',
+                  }}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
               </div>
             </motion.div>
           </div>
