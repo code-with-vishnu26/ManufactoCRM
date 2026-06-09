@@ -58,25 +58,85 @@ ManufactoCRM AI is a production-ready, full-stack MERN SaaS CRM platform built f
 
 ```
 manufacto-crm-ai/
-├── client/                    # React Frontend
+├── client/                     # React Frontend (Vite Build)
 │   ├── src/
-│   │   ├── components/        # Sidebar, Navbar
-│   │   ├── context/           # AuthContext
-│   │   ├── hooks/             # useLeads
-│   │   ├── layouts/           # AppLayout
-│   │   ├── pages/             # 12 pages
-│   │   ├── services/          # Axios API client
-│   │   └── utils/             # Helpers & constants
-│   └── index.html
+│   │   ├── assets/             # Images, static logos, and banners
+│   │   ├── components/         # Reusable UI parts (Navbar, Sidebar, Kanban Cards, Charts)
+│   │   ├── context/            # React Contexts (AuthContext for session, ThemeContext for dark/light mode)
+│   │   ├── hooks/              # Custom hooks for leads operations, analytics, etc.
+│   │   ├── layouts/            # Page shell containers (AppLayout with sidebar, PublicLayout for landing)
+│   │   ├── pages/              # View pages (Login, Register, Dashboard, Leads, Kanban, Analytics, AI)
+│   │   ├── services/           # api.js (Axios client with automatic token injection and 401 interception)
+│   │   └── utils/              # Client-side constants, helpers, and color mappings
+│   │
+│   ├── index.html              # Main HTML entry point
+│   ├── vite.config.js          # Vite configuration with local proxy to port 5000
+│   └── package.json            # Frontend dependency specifications
 │
-└── server/                    # Express Backend
-    ├── config/                # Database config
-    ├── controllers/           # Business logic
-    ├── middleware/            # Auth, Error handling
-    ├── models/                # Mongoose schemas
-    ├── routes/                # API routes
-    ├── utils/                 # Seed data
-    └── server.js
+└── server/                     # Express Backend API
+    ├── config/                 # db.js (MongoDB Atlas database connection settings)
+    ├── controllers/            # Controller layers (auth, leads, analytics, reports, activity logs)
+    ├── middleware/             # Express handlers (auth checking, error catcher, RBAC guards)
+    ├── models/                 # Mongoose schema definitions (User, Lead, ActivityLog)
+    ├── routes/                 # Express route paths mapping URLs to controller functions
+    ├── utils/                  # Seed scripts and mock manufacturing database generators
+    │
+    ├── server.js               # Application entry point (initializes Express, sets IPv4 DNS priority)
+    └── package.json            # Backend dependencies & startup scripts
+```
+
+---
+
+## 🔄 Application Workflows
+
+Below are detailed representations of the main architectural pathways in the application:
+
+### 1. Direct Registration & Auto-Login Flow
+When a user signs up, the application bypasses standard email verification (OTP) pages, immediately signs a JWT token on user creation, and redirects the client to their dashboard:
+
+```mermaid
+sequenceDiagram
+    participant User as User (Client Browser)
+    participant AuthContext as AuthContext (React State)
+    participant API as API Client (Axios)
+    participant Express as Express Server (Render)
+    participant DB as MongoDB Atlas
+
+    User->>AuthContext: Submits Registration Form (Step 1 + Step 2)
+    AuthContext->>API: POST /api/auth/register (payload)
+    API->>Express: Resolves hostname via IPv4 -> Sends JSON Request
+    Express->>Express: Validates Email (Disposable Check & DNS MX Lookup)
+    Express->>DB: User.create() (isVerified: true, isActive: true)
+    DB-->>Express: Returns new User Document
+    Express->>Express: Signs Session JWT Token (Expires in 7 days)
+    Express-->>API: Returns 201 Created (Token + User object + Dashboard Route)
+    API-->>AuthContext: Sets user state & saves token to localStorage
+    AuthContext-->>User: Redirects instantly to Dashboard (Welcome Toast!)
+```
+
+---
+
+### 2. Social OAuth Cross-Window Communication
+When authenticating via Google, GitHub, or Microsoft, the client opens a secure popup that redirects to the OAuth provider, returns to the backend callback, and relays the token back to the parent page:
+
+```mermaid
+sequenceDiagram
+    participant User as User (Client Browser)
+    participant Register as Register Page (React)
+    participant PopUp as Auth Popup Window
+    participant Server as Express Server (Render)
+    participant Social as Social Provider (Google/GitHub)
+
+    User->>Register: Clicks "Sign Up with Google"
+    Register->>PopUp: Opens OAuth URL via window.open()
+    PopUp->>Social: Redirects to Consent screen
+    Social-->>PopUp: Redirects back to Callback endpoint with Auth Code
+    PopUp->>Server: Exchanges code for token
+    Server->>Server: Verifies credentials & finds/creates verified User
+    Server-->>PopUp: Renders Callback HTML (embeds token & user data)
+    PopUp->>Register: Sends window.postMessage(token, user) [Validated Origin]
+    Register->>Register: Closes Popup & processes session auto-login
+    Register-->>User: Logs in and redirects to Dashboard
 ```
 
 ---
