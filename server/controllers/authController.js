@@ -215,7 +215,8 @@ const register = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Disposable or temporary emails are not allowed. Please use a valid, original email address.' });
     }
 
-    // 2. DNS MX Record lookup — STRICT: reject if domain has no MX records or lookup fails
+    // 2. DNS MX Record lookup — reject if domain definitely has no MX records or doesn't exist.
+    // Allow transient errors (timeout, temp server failure) to default to true.
     let hasMx = false;
     try {
       const mx = await dns.resolveMx(domain);
@@ -223,8 +224,12 @@ const register = async (req, res, next) => {
         hasMx = true;
       }
     } catch (dnsErr) {
-      // Any DNS failure (ENOTFOUND, ENODATA, timeout) = reject
-      hasMx = false;
+      if (dnsErr.code === 'ENOTFOUND' || dnsErr.code === 'ENODATA') {
+        hasMx = false;
+      } else {
+        console.warn(`⚠️ DNS MX lookup failed for ${domain} with error ${dnsErr.code || dnsErr.message}. Defaulting to true.`);
+        hasMx = true;
+      }
     }
 
     if (!hasMx) {

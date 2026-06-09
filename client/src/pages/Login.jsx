@@ -60,10 +60,11 @@ export default function Login() {
       const allowedOrigins = [window.location.origin, 'http://localhost:5000'];
       if (serverOrigin) allowedOrigins.push(serverOrigin);
 
-      // Verify origin with strong fallbacks (e.g. railway.app subdomain match or localhost)
+      // Verify origin with strong fallbacks (e.g. railway.app / onrender.com subdomain match or localhost)
       const isAllowedOrigin = allowedOrigins.includes(e.origin) || 
                               e.origin.includes('localhost') || 
-                              e.origin.endsWith('railway.app');
+                              e.origin.endsWith('railway.app') ||
+                              e.origin.endsWith('onrender.com');
 
       if (!isAllowedOrigin) return;
 
