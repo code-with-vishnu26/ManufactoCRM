@@ -88,53 +88,70 @@ app.get('/api/health', async (req, res) => {
 
   const testEmail = req.query.testEmail;
   if (testEmail) {
-    try {
-      let transporter;
-      if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-        const isGmail = process.env.SMTP_HOST.includes('gmail.com');
-        const transportOpts = isGmail 
-          ? {
-              service: 'gmail',
-              auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-              connectionTimeout: 10000,
-              timeout: 10000,
-            }
-          : {
-              host: process.env.SMTP_HOST,
-              port: parseInt(process.env.SMTP_PORT) || 587,
-              secure: process.env.SMTP_SECURE === 'true',
-              auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-              tls: { rejectUnauthorized: false },
-              connectionTimeout: 10000,
-              timeout: 10000,
-            };
-        transporter = nodemailer.createTransport(transportOpts);
-      } else {
-        throw new Error('SMTP credentials not configured in environment variables');
+    healthData.tests = [];
+    const configs = [
+      {
+        name: "service_gmail_shorthand",
+        config: {
+          service: 'gmail',
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          connectionTimeout: 8000,
+          timeout: 8000,
+        }
+      },
+      {
+        name: "custom_smtp_port_587_starttls",
+        config: {
+          host: 'smtp.gmail.com',
+          port: 587,
+          secure: false,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          tls: { rejectUnauthorized: false },
+          connectionTimeout: 8000,
+          timeout: 8000,
+        }
+      },
+      {
+        name: "custom_smtp_port_465_ssl",
+        config: {
+          host: 'smtp.gmail.com',
+          port: 465,
+          secure: true,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          connectionTimeout: 8000,
+          timeout: 8000,
+        }
       }
+    ];
 
-      const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"ManufactoCRM AI" <no-reply@manufactocrm.com>',
-        to: testEmail,
-        subject: '🔍 SMTP Diagnostics — Test Email',
-        html: `<h3>SMTP Diagnostic Test</h3><p>If you received this, SMTP settings on Render are configured correctly! Time: ${new Date().toISOString()}</p>`
-      });
-
-      healthData.emailTest = {
-        success: true,
-        messageId: info.messageId,
-        envelope: info.envelope,
-        response: info.response
-      };
-    } catch (smtpErr) {
-      healthData.emailTest = {
-        success: false,
-        error: smtpErr.message,
-        code: smtpErr.code,
-        command: smtpErr.command,
-        response: smtpErr.response,
-        stack: smtpErr.stack
-      };
+    for (const item of configs) {
+      if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+        healthData.tests.push({ name: item.name, success: false, error: 'SMTP credentials missing' });
+        continue;
+      }
+      try {
+        const testTransporter = nodemailer.createTransport(item.config);
+        const info = await testTransporter.sendMail({
+          from: process.env.SMTP_FROM || `"ManufactoCRM AI" <narendarbusa0@gmail.com>`,
+          to: testEmail,
+          subject: `🔍 SMTP Test - ${item.name}`,
+          html: `<p>Testing SMTP configuration: <strong>${item.name}</strong></p><p>Time: ${new Date().toISOString()}</p>`
+        });
+        healthData.tests.push({
+          name: item.name,
+          success: true,
+          messageId: info.messageId,
+          response: info.response
+        });
+      } catch (err) {
+        healthData.tests.push({
+          name: item.name,
+          success: false,
+          error: err.message,
+          code: err.code,
+          response: err.response
+        });
+      }
     }
   }
 
