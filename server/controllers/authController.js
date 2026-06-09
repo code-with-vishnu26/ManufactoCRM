@@ -51,16 +51,24 @@ const sendVerificationEmail = async (email, name, code) => {
     let transporter;
 
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
-      // Production: use configured SMTP (e.g. Gmail, Mailgun, SendGrid)
-      transporter = nodemailer.createTransport({
-        host:   process.env.SMTP_HOST,
-        port:   parseInt(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
-        auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-        tls:    { rejectUnauthorized: false },
-        connectionTimeout: 5000, // 5 seconds connection timeout
-        timeout: 5000,           // 5 seconds socket timeout
-      });
+      const isGmail = process.env.SMTP_HOST.includes('gmail.com');
+      const transportOpts = isGmail 
+        ? {
+            service: 'gmail',
+            auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+            connectionTimeout: 10000, // 10 seconds connection timeout
+            timeout: 10000,           // 10 seconds socket timeout
+          }
+        : {
+            host:   process.env.SMTP_HOST,
+            port:   parseInt(process.env.SMTP_PORT) || 587,
+            secure: process.env.SMTP_SECURE === 'true',
+            auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+            tls:    { rejectUnauthorized: false },
+            connectionTimeout: 10000, // 10 seconds connection timeout
+            timeout: 10000,           // 10 seconds socket timeout
+          };
+      transporter = nodemailer.createTransport(transportOpts);
     } else {
       // Development fallback: Ethereal test account (preview via URL in console)
       const testAccount = await nodemailer.createTestAccount();
@@ -69,8 +77,8 @@ const sendVerificationEmail = async (email, name, code) => {
         port:   587,
         secure: false,
         auth:   { user: testAccount.user, pass: testAccount.pass },
-        connectionTimeout: 5000, // 5 seconds connection timeout
-        timeout: 5000,           // 5 seconds socket timeout
+        connectionTimeout: 10000, // 10 seconds connection timeout
+        timeout: 10000,           // 10 seconds socket timeout
       });
     }
 
