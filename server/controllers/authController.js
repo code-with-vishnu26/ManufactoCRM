@@ -251,21 +251,20 @@ const register = async (req, res, next) => {
     // Check duplicate email
     const existingUser = await User.findOne({ email: lowerEmail });
     if (existingUser) {
-      // If user exists but is not verified, resend the code
       if (!existingUser.isVerified) {
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        existingUser.verificationCode = verificationCode;
-        existingUser.verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000);
+        // Automatically verify them now!
+        existingUser.isVerified = true;
+        existingUser.verificationCode = '';
+        existingUser.lastLogin = new Date();
         await existingUser.save({ validateBeforeSave: false });
-        
-        // Send verification email in the background to prevent SMTP timeouts from blocking the response
-        sendVerificationEmail(lowerEmail, existingUser.name, verificationCode);
-        
+
+        const token = generateToken(existingUser._id);
         return res.status(200).json({
           success: true,
-          needsVerification: true,
-          email: lowerEmail,
-          message: 'Verification code resent! Please check your email.',
+          token,
+          user: safeUser(existingUser),
+          dashboardRoute: DASHBOARD_ROUTES[existingUser.role] || '/sales/dashboard',
+          message: 'Account successfully verified and signed in!',
         });
       }
       return res.status(400).json({ success: false, message: 'Email already registered. Please login.' });
@@ -274,11 +273,7 @@ const register = async (req, res, next) => {
     // Validate role
     const assignedRole = role && ALLOWED_ROLES.includes(role) ? role : 'sales_executive';
 
-    // Generate 6-digit OTP
-    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-
-    // Create user — NOT verified yet
+    // Create user — verified by default
     const user = await User.create({
       name: name.trim(),
       email: lowerEmail,
@@ -287,21 +282,19 @@ const register = async (req, res, next) => {
       phone: phone || '',
       address: address || '',
       department: department || 'Sales',
-      isVerified: false,
+      isVerified: true,
       isActive: true,
-      verificationCode,
-      verificationCodeExpiry,
     });
 
-    // Send verification email in the background to prevent SMTP timeouts from blocking the response
-    sendVerificationEmail(lowerEmail, name.trim(), verificationCode);
+    const token = generateToken(user._id);
 
-    // Return without token — user must verify email first
+    // Return token directly — user is logged in immediately
     res.status(201).json({
       success: true,
-      needsVerification: true,
-      email: lowerEmail,
-      message: 'Account created! Please check your email for the 6-digit verification code.',
+      token,
+      user: safeUser(user),
+      dashboardRoute: DASHBOARD_ROUTES[user.role] || '/sales/dashboard',
+      message: 'Account created successfully! Welcome to ManufactoCRM AI.',
     });
   } catch (error) {
     next(error);
@@ -440,14 +433,10 @@ const login = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account deactivated. Contact your administrator.' });
     }
 
-    // Reject login if the email is not verified yet
+    // Auto-verify if user somehow is not verified yet
     if (!user.isVerified) {
-      return res.status(400).json({
-        success: false,
-        isNotVerified: true,
-        email: user.email,
-        message: 'Your email address is not verified. Please verify your email first.'
-      });
+      user.isVerified = true;
+      await user.save({ validateBeforeSave: false });
     }
 
     const isMatch = await user.comparePassword(password);
