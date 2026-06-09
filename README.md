@@ -19,15 +19,16 @@ ManufactoCRM AI is a production-ready, full-stack MERN SaaS CRM platform built f
 
 | Feature | Description |
 |---|---|
-| 🔐 **Authentication** | JWT-based auth with bcrypt, role-based access (Admin/Team Lead/Sales Exec) |
-| 📊 **Dashboard** | KPI cards, 4 chart types (Area, Bar, Pie, Line), recent activity feed |
-| 👥 **Lead Management** | Full CRUD, search, filter, pagination, assign to team members |
-| 🎯 **Kanban Pipeline** | Drag-and-drop board with 7 stages via @dnd-kit |
-| 📈 **Analytics** | Revenue trends, pipeline distribution, industry breakdown, conversion rates |
-| 🏆 **Team Performance** | Leaderboard, progress bars, conversion rates, revenue tracking |
-| 🤖 **AI Assistant** | Generate follow-up emails, sales pitches, lead summaries, next actions |
-| ⚙️ **Settings** | Profile management, password update, notification preferences |
-| 📱 **Responsive** | Fully responsive with collapsible sidebar and mobile navigation |
+| ⚡ **Direct Sign-up & Auto-Login** | Registrations are active immediately. Bypasses email verification (OTP) pages, signs the user in, and redirects straight to the role-based dashboard. |
+| 🎬 **CRM Video Tour Modal** | The public home page includes a professional interactive video modal player displaying a responsive YouTube product tour trailer. |
+| 🔬 **SMTP & Health Diagnostics** | Self-diagnostics system integrated into the backend `/api/health` endpoint to test SMTP settings, database status, and resolve network connectivity live in production. |
+| 🔐 **Authentication & RBAC** | JWT-based auth with bcrypt, secure social log-ins (Google, GitHub, Microsoft), and strict role-based access controls (Admin/Team Lead/Sales Exec). |
+| 📊 **Dashboard Views** | Role-based KPI stats cards, 4 interactive Recharts charts (Area, Bar, Pie, Line), and recent activity streams. |
+| 👥 **Lead Management** | Comprehensive CRUD control, advanced global filters, search matching, pagination, and teammate assignments. |
+| 🎯 **Kanban Pipeline** | Drag-and-drop CRM visual board with 7 pipeline stages powered by `@dnd-kit`. |
+| 🤖 **AI Assistant** | Instantly generates follow-up emails, sales pitches, lead summaries, and recommended actions using AI text generation. |
+| ⚙️ **System Settings** | User profile card management, secure password updates, and configurable notification preferences. |
+| 📱 **Fully Responsive Layout** | Sleek glassmorphic mobile drawer, collapsible sidebars, and fluid responsive layouts optimized for all screens. |
 
 ---
 
@@ -274,11 +275,15 @@ The application features a global navbar search box that allows users to query a
 
 ## 🏗️ Technical Highlights
 
-- **Full-Stack Architecture**: React + Express + Node.js + MongoDB.
-- **Role-Based Access Control (RBAC)**: Custom routing locks pages based on user roles (Admin vs BDA/Sales Executive).
-- **Dynamic Leads Auto-Assignment**: Middleware automatically assigns mock leads to new Sales Executives on their first login, ensuring they always have mock data to explore.
-- **Search Everywhere**: The global search navbar matches queries against database fields and routes seamlessly from both public landing pages and private dashboard pages.
+- **Direct Auth & Session Auto-Login**: Replaced the multi-step verification code (OTP) requirement with direct sign-up. Upon registering, users are created as verified, session tokens are signed immediately using JWT, and the frontend logs them in seamlessly. Unverified legacy accounts are automatically verified during login or duplicate signup attempts to ensure zero-friction entry.
+- **Node.js IPv4 DNS Resolution Policy**: Configured the backend Node.js runtime environment using `dns.setDefaultResultOrder('ipv4first')` to resolve connection timeouts (`ENETUNREACH`) on cloud hosts (like Render) that block outbound IPv6 routes, forcing SMTP connections over IPv4.
+- **Cross-Window Security on Social Login**: Configured the OAuth social authentication popups (Google, GitHub, Microsoft) to establish secure cross-window message relays with strict origin validation, dynamically supporting `localhost`, `vercel.app`, and `onrender.com` subdomains.
+- **Live Health Diagnostics Suite**: Implemented an automated `/api/health` query diagnostics system. Developers can run direct, isolated SMTP tests (by hitting `/api/health?testEmail=...&testName=...`) or inspect user database records in real-time.
+- **Full-Stack Architecture**: React 19 + Express + Node.js + MongoDB Atlas.
+- **Role-Based Access Control (RBAC)**: Client-side router-guards and server-side authorization middlewares lock access paths depending on active roles (Admin, Team Lead, Sales Executive).
+- **Dynamic Leads Auto-Assignment**: Backend middleware dynamically hooks new Sales Executive registrations and auto-assigns 20 mock manufacturing leads on first log-in to guarantee an instantly interactive testing sandbox.
+- **Search Everywhere**: Integrated a global search component that queries leads database collections across names, contacts, and sectors, featuring animated dropdowns and seamless page routing.
 
 ---
 
-Thank You For Visiting @!
+Thank You For Visiting! 🚀
