@@ -200,6 +200,30 @@ app.get('/api/health', async (req, res) => {
     }
   }
 
+  const checkUserEmail = req.query.checkUser;
+  if (checkUserEmail) {
+    try {
+      const User = require('./models/User');
+      const targetUser = await User.findOne({ email: checkUserEmail.toLowerCase().trim() });
+      if (targetUser) {
+        healthData.userCheck = {
+          exists: true,
+          id: targetUser._id,
+          name: targetUser.name,
+          email: targetUser.email,
+          isVerified: targetUser.isVerified,
+          role: targetUser.role,
+          createdAt: targetUser.createdAt,
+          hasPassword: !!targetUser.password
+        };
+      } else {
+        healthData.userCheck = { exists: false };
+      }
+    } catch (err) {
+      healthData.userCheck = { error: err.message };
+    }
+  }
+
   res.json(healthData);
 });
 
