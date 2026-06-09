@@ -183,7 +183,7 @@ const sendVerificationEmail = async (email, name, code) => {
       html:    htmlContent,
     });
 
-    console.log(`✉️  Verification email sent: ${info.messageId}`);
+    console.log(`✉️  Verification email sent successfully to ${email}. MessageId: ${info.messageId}. Verification Code is: ${code}`);
     const previewUrl = nodemailer.getTestMessageUrl(info);
     if (previewUrl) {
       console.log(`📬 Preview email: ${previewUrl}`);
@@ -191,7 +191,7 @@ const sendVerificationEmail = async (email, name, code) => {
     }
     return null;
   } catch (error) {
-    console.error('❌ Failed to send verification email:', error.message);
+    console.error(`❌ Failed to send verification email to ${email}. Verification Code is: ${code}. Error:`, error.message);
     return null;
   }
 };
