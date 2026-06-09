@@ -58,6 +58,8 @@ const sendVerificationEmail = async (email, name, code) => {
         secure: process.env.SMTP_SECURE === 'true',
         auth:   { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
         tls:    { rejectUnauthorized: false },
+        connectionTimeout: 5000, // 5 seconds connection timeout
+        timeout: 5000,           // 5 seconds socket timeout
       });
     } else {
       // Development fallback: Ethereal test account (preview via URL in console)
@@ -67,6 +69,8 @@ const sendVerificationEmail = async (email, name, code) => {
         port:   587,
         secure: false,
         auth:   { user: testAccount.user, pass: testAccount.pass },
+        connectionTimeout: 5000, // 5 seconds connection timeout
+        timeout: 5000,           // 5 seconds socket timeout
       });
     }
 
@@ -245,7 +249,10 @@ const register = async (req, res, next) => {
         existingUser.verificationCode = verificationCode;
         existingUser.verificationCodeExpiry = new Date(Date.now() + 15 * 60 * 1000);
         await existingUser.save({ validateBeforeSave: false });
-        await sendVerificationEmail(lowerEmail, existingUser.name, verificationCode);
+        
+        // Send verification email in the background to prevent SMTP timeouts from blocking the response
+        sendVerificationEmail(lowerEmail, existingUser.name, verificationCode);
+        
         return res.status(200).json({
           success: true,
           needsVerification: true,
@@ -278,8 +285,8 @@ const register = async (req, res, next) => {
       verificationCodeExpiry,
     });
 
-    // Send verification email
-    await sendVerificationEmail(lowerEmail, name.trim(), verificationCode);
+    // Send verification email in the background to prevent SMTP timeouts from blocking the response
+    sendVerificationEmail(lowerEmail, name.trim(), verificationCode);
 
     // Return without token — user must verify email first
     res.status(201).json({
@@ -425,9 +432,14 @@ const login = async (req, res, next) => {
       return res.status(403).json({ success: false, message: 'Account deactivated. Contact your administrator.' });
     }
 
-    // Auto-verify any legacy accounts that were created before the email-verification step was removed
+    // Reject login if the email is not verified yet
     if (!user.isVerified) {
-      user.isVerified = true;
+      return res.status(400).json({
+        success: false,
+        isNotVerified: true,
+        email: user.email,
+        message: 'Your email address is not verified. Please verify your email first.'
+      });
     }
 
     const isMatch = await user.comparePassword(password);
