@@ -90,7 +90,21 @@ app.get('/api/health', async (req, res) => {
 
   const testEmail = req.query.testEmail;
   if (testEmail) {
+    const dnsModule = require('dns').promises;
     healthData.tests = [];
+    
+    let resolvedIpv4 = 'smtp.gmail.com';
+    try {
+      const addresses = await dnsModule.resolve4('smtp.gmail.com');
+      if (addresses && addresses.length > 0) {
+        resolvedIpv4 = addresses[0];
+      }
+    } catch (dnsErr) {
+      console.error('dns.resolve4 failed:', dnsErr.message);
+    }
+    
+    healthData.resolvedIpv4 = resolvedIpv4;
+
     const configs = [
       {
         name: "service_gmail_shorthand",
@@ -120,6 +134,30 @@ app.get('/api/health', async (req, res) => {
           port: 465,
           secure: true,
           auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          connectionTimeout: 8000,
+          timeout: 8000,
+        }
+      },
+      {
+        name: "custom_smtp_port_587_ipv4_resolved",
+        config: {
+          host: resolvedIpv4,
+          port: 587,
+          secure: false,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          tls: { servername: 'smtp.gmail.com', rejectUnauthorized: false },
+          connectionTimeout: 8000,
+          timeout: 8000,
+        }
+      },
+      {
+        name: "custom_smtp_port_465_ipv4_resolved",
+        config: {
+          host: resolvedIpv4,
+          port: 465,
+          secure: true,
+          auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+          tls: { servername: 'smtp.gmail.com' },
           connectionTimeout: 8000,
           timeout: 8000,
         }
