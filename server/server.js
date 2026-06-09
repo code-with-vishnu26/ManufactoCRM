@@ -164,7 +164,12 @@ app.get('/api/health', async (req, res) => {
       }
     ];
 
-    for (const item of configs) {
+    const testName = req.query.testName;
+    const configsToRun = testName 
+      ? configs.filter(c => c.name === testName)
+      : configs;
+
+    for (const item of configsToRun) {
       if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
         healthData.tests.push({ name: item.name, success: false, error: 'SMTP credentials missing' });
         continue;
